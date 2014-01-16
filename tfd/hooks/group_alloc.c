@@ -229,11 +229,11 @@ void malloc_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   malloc_t *s = malloc(sizeof(malloc_t));
@@ -264,7 +264,7 @@ void malloc_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get allocation start address from EAX */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
 
   /* Check if parameters tainted */
   int sizeT = 0;
@@ -275,7 +275,7 @@ void malloc_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -306,11 +306,11 @@ void calloc_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   malloc_t *s = malloc(sizeof(malloc_t));
@@ -341,7 +341,7 @@ void calloc_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get allocation start address from EAX */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
 
 
   /* Check if parameters tainted */
@@ -353,7 +353,7 @@ void calloc_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -394,11 +394,11 @@ void memalign_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   memalign_t *s = malloc(sizeof(memalign_t));
@@ -430,7 +430,7 @@ void memalign_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get start address of allocated buffer from EAX */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
 
   /* Get module and function names */
   char mod_name[512];
@@ -438,7 +438,7 @@ void memalign_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -480,11 +480,11 @@ void posix_memalign_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   posix_memalign_t *s = malloc(sizeof(posix_memalign_t));
@@ -518,7 +518,7 @@ void posix_memalign_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get allocation results from EAX */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
   if (eax != 0) goto finish;
 
   /* Read start address of allocated buffer */
@@ -533,7 +533,7 @@ void posix_memalign_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  //uint32_t eip = *DECAF_cpu_eip;
+  //uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -576,11 +576,11 @@ void free_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   free_t *s = malloc(sizeof(free_t));
@@ -616,7 +616,7 @@ void free_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -656,11 +656,11 @@ void realloc_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   realloc_t *s = malloc(sizeof(realloc_t));
@@ -693,7 +693,7 @@ void realloc_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get allocation start address from EAX */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
 
   /* Get module and function names */
   char mod_name[512];
@@ -701,7 +701,7 @@ void realloc_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -757,11 +757,11 @@ void heap_create_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   heap_create_t *s = malloc(sizeof(heap_create_t));
@@ -794,7 +794,7 @@ void heap_create_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get heap handle from EAX */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
 
   /* Get module and function names */
   char mod_name[512];
@@ -802,7 +802,7 @@ void heap_create_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Round up commit size */
   uint32_t num_pages = s->initialSize / 4096;
@@ -863,11 +863,11 @@ void rtl_create_heap_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   rtl_create_heap_t *s = malloc(sizeof(rtl_create_heap_t));
@@ -904,7 +904,7 @@ void rtl_create_heap_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get heap handle from EAX */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
 
   /* Get module and function names */
   char mod_name[512];
@@ -912,7 +912,7 @@ void rtl_create_heap_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* The _HEAP structure reserves 1664 bytes */
   uint32_t size = 1664;
@@ -970,11 +970,11 @@ void rtl_allocate_heap_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   rtl_allocate_heap_t *s = malloc(sizeof(rtl_allocate_heap_t));
@@ -1007,7 +1007,7 @@ void rtl_allocate_heap_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get allocation start address from EAX */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
 
   /* Check if parameters tainted */
   int sizeT = 0, handleT = 0, flagsT = 0;
@@ -1018,7 +1018,7 @@ void rtl_allocate_heap_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -1057,11 +1057,11 @@ void rtl_free_heap_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   free_t *s = malloc(sizeof(free_t));
@@ -1097,7 +1097,7 @@ void rtl_free_heap_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -1146,11 +1146,11 @@ void rtl_reallocate_heap_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   rtl_reallocate_heap_t *s = malloc(sizeof(rtl_reallocate_heap_t));
@@ -1184,7 +1184,7 @@ void rtl_reallocate_heap_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get allocation start address from EAX */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
 
   /* Check if parameters tainted */
   int sizeT = 0, handleT = 0, flagsT = 0;
@@ -1195,7 +1195,7 @@ void rtl_reallocate_heap_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -1256,14 +1256,14 @@ void zw_allocate_virtual_memory_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* If not committing memory, ignore */
   if (!(stack[5] & 0x1000)) return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   zw_allocate_virtual_memory_t *s = 
@@ -1303,7 +1303,7 @@ void zw_allocate_virtual_memory_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get status from EAX */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
 
   /* If unsuccessful, skip processing */
   if (eax != 0) goto finish;
@@ -1314,7 +1314,7 @@ void zw_allocate_virtual_memory_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  //uint32_t eip = *DECAF_cpu_eip;
+  //uint32_t eip = *DECAF_CPU_EIP;
 
   /* Read base address for allocation */
   read_err = read_mem(s->baseAddressPtr, sizeof(uint32_t),
@@ -1391,11 +1391,11 @@ void zw_map_view_of_section_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   zw_map_view_of_section_t *s = malloc(sizeof(zw_map_view_of_section_t));
@@ -1437,7 +1437,7 @@ void zw_map_view_of_section_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get status from EAX */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
 
   /* If unsuccessful, skip processing */
   if (eax != 0) goto finish;
@@ -1448,7 +1448,7 @@ void zw_map_view_of_section_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  //uint32_t eip = *DECAF_cpu_eip;
+  //uint32_t eip = *DECAF_CPU_EIP;
 
   /* Read base address for view */
   read_err = read_mem(s->baseAddressPtr, sizeof(uint32_t), 
@@ -1508,11 +1508,11 @@ void zw_unmap_view_of_section_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   zw_unmap_view_of_section_t *s = malloc(sizeof(zw_unmap_view_of_section_t));
@@ -1544,7 +1544,7 @@ void zw_unmap_view_of_section_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get status from EAX */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
 
   /* If unsuccessful, skip processing */
   if (eax != 0) goto finish;
@@ -1555,7 +1555,7 @@ void zw_unmap_view_of_section_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -1607,11 +1607,11 @@ void virtual_alloc_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Read the parameters */
   virtual_alloc_t *s = malloc(sizeof(virtual_alloc_t));
@@ -1650,7 +1650,7 @@ void virtual_alloc_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Read allocation address */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
 
   /* Get module and function names */
   char mod_name[512];
@@ -1658,7 +1658,7 @@ void virtual_alloc_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -1708,11 +1708,11 @@ void virtual_free_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   virtual_free_t *s = malloc(sizeof(virtual_free_t));
@@ -1745,7 +1745,7 @@ void virtual_free_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get result */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
   if (eax == 0) goto finish;
 
   /* Get module and function names */
@@ -1754,7 +1754,7 @@ void virtual_free_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -1802,14 +1802,14 @@ void local_alloc_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* If memory movable, then ignore */
   if (stack[1] & 0x0002) return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   local_alloc_t *s = malloc(sizeof(local_alloc_t));
@@ -1842,7 +1842,7 @@ void local_alloc_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Read allocation address */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
 
   /* Get module and function names */
   char mod_name[512];
@@ -1850,7 +1850,7 @@ void local_alloc_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Select ALLOC or CALLOC */
   if (s->flags & 0x0040) {
@@ -1904,11 +1904,11 @@ void local_realloc_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   local_realloc_t *s = malloc(sizeof(local_realloc_t));
@@ -1941,7 +1941,7 @@ void local_realloc_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Read result */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
   if (eax == 0) goto finish;
 
   /* Get module and function names */
@@ -1950,7 +1950,7 @@ void local_realloc_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -1999,11 +1999,11 @@ void local_free_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   local_free_t *s = malloc(sizeof(local_free_t));
@@ -2034,7 +2034,7 @@ void local_free_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get result */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
   if (eax != 0) goto finish;
 
   /* Get module and function names */
@@ -2043,7 +2043,7 @@ void local_free_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -2093,11 +2093,11 @@ void cf_allocator_allocate_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   cf_allocator_allocate_t *s = malloc(sizeof(cf_allocator_allocate_t));
@@ -2130,7 +2130,7 @@ void cf_allocator_allocate_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get result */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
 
   /* Get module and function names */
   char mod_name[512];
@@ -2138,7 +2138,7 @@ void cf_allocator_allocate_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -2185,11 +2185,11 @@ void cf_allocator_deallocate_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   cf_allocator_deallocate_t *s = malloc(sizeof(cf_allocator_deallocate_t));
@@ -2226,7 +2226,7 @@ void cf_allocator_deallocate_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -2278,11 +2278,11 @@ void cf_allocator_reallocate_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   cf_allocator_reallocate_t *s = malloc(sizeof(cf_allocator_reallocate_t));
@@ -2316,7 +2316,7 @@ void cf_allocator_reallocate_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get allocation start address from EAX */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
 
   /* Get module and function names */
   char mod_name[512];
@@ -2324,7 +2324,7 @@ void cf_allocator_reallocate_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -2373,11 +2373,11 @@ void sqlite3_db_alloc_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   sqlite3_db_alloc_t *s = malloc(sizeof(sqlite3_db_alloc_t));
@@ -2410,7 +2410,7 @@ void sqlite3_db_alloc_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get allocation start address from EAX */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
 
   /* Get module and function names */
   //char mod_name[512];
@@ -2418,7 +2418,7 @@ void sqlite3_db_alloc_ret(void *opaque)
   //get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -2459,11 +2459,11 @@ void sqlite3_db_free_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   sqlite3_db_free_t *s = malloc(sizeof(sqlite3_db_free_t));
@@ -2500,7 +2500,7 @@ void sqlite3_db_free_ret(void *opaque)
   //get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -2541,11 +2541,11 @@ void sqlite3_db_realloc_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   sqlite3_db_realloc_t *s = malloc(sizeof(sqlite3_db_realloc_t));
@@ -2578,7 +2578,7 @@ void sqlite3_db_realloc_ret(void *opaque)
   //assert(current_tid == s->entry_tid);
 
   /* Get allocation start address from EAX */
-  uint32_t eax = DECAF_cpu_regs[R_EAX];
+  uint32_t eax = DECAF_CPU_REGS[R_EAX];
 
   /* Get module and function names */
   //char mod_name[512];
@@ -2586,7 +2586,7 @@ void sqlite3_db_realloc_ret(void *opaque)
   //get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -2634,11 +2634,11 @@ void g_slice_free1_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   g_slice_free1_t *s = malloc(sizeof(g_slice_free1_t));
@@ -2675,7 +2675,7 @@ void g_slice_free1_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {
@@ -2717,11 +2717,11 @@ void g_slice_free_chain_with_offset_call(void *opaque)
     return;
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /* Read function entry point */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Store the parameters */
   g_slice_free_chain_with_offset_t *s = 
@@ -2777,7 +2777,7 @@ void g_slice_free_chain_with_offset_ret(void *opaque)
   get_function_name(s->entry_eip,(char *)&mod_name,(char *)&fun_name);
 
   /* Get return address */
-  uint32_t eip = *DECAF_cpu_eip;
+  uint32_t eip = *DECAF_CPU_EIP;
 
   /* Print to file the parameter information */
   if (!alloclog) {

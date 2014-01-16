@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <inttypes.h>
+#include "shared/vmi_c_wrapper.h"
 
 #define MAX_NUMBER_OF_THREADS 16
 

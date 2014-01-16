@@ -25,7 +25,6 @@
 #include <string.h>
 #include <assert.h>
 #include "DECAF_main.h"
-#include "DECAF_target.h"
 #include "DECAF_callback.h"
 #include "conf.h"
 #include "tfd.h"
@@ -40,7 +39,6 @@ int conf_save_state_at_trace_start = 0;
 int conf_save_state_at_trace_stop = 0;
 
 /* Environment variables */
-int tracing_table_lookup = 1;
 static int conf_ignore_dns = 0;
 static int conf_tainted_only = 0;
 static int conf_single_thread_only = 0;
@@ -173,14 +171,13 @@ void print_conf_vars()
 {
   monitor_printf(
     default_mon,
-    "TABLE_LOOKUP: %d\nTRACE_AFTER_FIRST_TAINT: %d\n"
+    "TRACE_AFTER_FIRST_TAINT: %d\n"
       "WRITE_OPS_AT_INSN_END: %d\nSAVE_STATE_AT_TRACE_START: %d\n"
       "SAVE_STATE_AT_TRACE_STOP: %d\nIGNOREDNS: %d\nTAINTED_ONLY: %d\n"
       "SINGLE_THREAD_ONLY: %d\nTRACING_KERNEL_ALL: %d\n"
       "TRACING_KERNEL_TAINTED: %d\nTRACING_KERNEL_PARTIAL: %d\n"
       "DETECT_MEMORY_EXCEPTION: %d\nDETECT_NULL_POINTER: %d\n"
       "DETECT_PROCESS_EXIT: %d\nDETECT_TAINTED_EIP: %d\n",
-    tracing_table_lookup,
     conf_trace_only_after_first_taint,
     conf_write_ops_at_insn_end,
     conf_save_state_at_trace_start,
@@ -304,8 +301,6 @@ int check_ini(const char *path_ini)
     &conf_save_state_at_trace_start);
   set_save_state(cn_root, "general/save_state_at_trace_stop",
     &conf_save_state_at_trace_stop);
-  set_bool_from_ini(cn_root, "tracing/tracing_table_lookup",
-    &tracing_table_lookup);
   set_bool_from_ini(cn_root, "tracing/tracing_tainted_only",
     &conf_tainted_only);
   set_bool_from_ini(cn_root, "tracing/tracing_single_thread_only",

@@ -51,20 +51,37 @@ inline void record_taint_value(OperandVal * op) {
 
 }
 
-/* Given an operand, check taint information and store it */
-void set_operand_taint(OperandVal *op) {
+/* Build an operand tainted flag, transforming byte mask to bit mask */
+uint16_t build_operand_taintmask(uint64_t orig)
+{
+  uint16_t temp = 0;
+  int i = 0;
+  while (i < 8) {
+    if (((orig >> i * 8) & 0xff) != 0)
+      temp = temp | (0x1 << i);
+    i++;
+  }
+  return temp;
+}
+
+/* Set the taint information of the given operand */
+inline void set_operand_taint(OperandVal *op) {
 #ifdef TAINT_ENABLED
   switch (op->type) {
     case TRegister: {
-      int regnum = REGNUM(op->addr.reg_addr);
+      int regnum = REGNUM(REGOP_ADDR(*op));
       int offset = getOperandOffset(op);
-      if(regnum!=-1)
-        op->tainted = (uint16_t) 
+      if(regnum!=-1){
+        uint64_t orig = 
           taintcheck_register_check(regnum, offset, op->length,cpu_single_env);
+        op->tainted = build_operand_taintmask(orig);
+      }
       break;
     }
     case TMemLoc: {
-      op->tainted = taintcheck_check_virtmem(op->addr.mem32_addr, op->length);
+      uint64_t orig = 0;
+      taintcheck_check_virtmem(MEMOP_ADDR(*op), op->length, (uint8_t *)&orig);
+      op->tainted = build_operand_taintmask(orig);
       break;
     }
     default:

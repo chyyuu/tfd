@@ -25,13 +25,11 @@
 #include <string.h>
 #include <sys/time.h>
 #include "DECAF_main.h"
-#include "DECAF_target.h"
 #include "tfd.h"
-#include "shared/procmod.h"
 #include "errdet.h"
-#include "read_linux.h"
 #include "hook_helpers.h"
 #include "sysemu.h"
+#include "shared/vmi_c_wrapper.h"
 
 // Windows exception codes
 #define NTSTATUS uint32_t
@@ -347,7 +345,8 @@ static void exception_detection(void *opaque) {
     return;
 
   /* Verify that this exception is one of critical exceptions */
-  if (0xC0000000 == kernel_mem_start) { // linux
+  /* Should use VMI functionality to determine if Linux */
+  if (0xC0000000 == VMI_guest_kernel_base) { // linux
     uint32_t eax,cr3;
     read_reg(eax_reg, &eax);  
     read_reg(cr3_reg, &cr3);
@@ -398,7 +397,9 @@ static void exception_detection(void *opaque) {
 
 int enable_exception_detection()
 {
-  if (0xC0000000 == kernel_mem_start) { // linux
+  /* Should use VMI functionality to determine if Linux */
+  if (0xC0000000 == VMI_guest_kernel_base) { // linux
+/*
     if (force_sig_info_hook == 0x0) {
       monitor_printf(default_mon, "In errdet.c: "
                   "force_sig_info is 0x0, exit hooking.");
@@ -413,6 +414,8 @@ int enable_exception_detection()
                     force_sig_info_hook);
       return 0;
     }
+*/
+    return -1;
   }
   else{ //windows
     exception_hook_handle = 
@@ -496,7 +499,7 @@ void set_detect_action(Monitor *mon, const QDict *qdict)
     qdict_get_str(qdict, "action"));
 }
 
-void procexit_detection(procmod_Callback_Params* params)
+void procexit_detection(VMI_Callback_Params* params)
 {
   if (params == NULL)
   {
@@ -544,9 +547,9 @@ void taintedeip_detection(uint8_t *record)
   if (DECAF_is_in_kernel())
     return ;
 
-  find_process(DECAF_cpu_cr[3], name,32, &pid);
+  VMI_find_process_by_cr3_c(DECAF_CPU_CR[3], name,32, &pid);
   monitor_printf(default_mon, "Tainted EIP 0x%08x in process %d (%s)\n",
-  *DECAF_cpu_eip, pid, name);
+  *DECAF_CPU_EIP, pid, name);
 
   // We will miss the instruction triggering vulnerability condition
   // if we log at the end of instruction

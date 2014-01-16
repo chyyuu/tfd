@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <sys/user.h>
+#include "decaf_target.h"
 #ifdef TRACE_VERSION_50
 #include "trace50.h"
 #else

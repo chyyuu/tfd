@@ -31,14 +31,13 @@
 #include "DECAF_target.h"
 #include "DECAF_callback.h"
 
-#include "shared/tainting/taintcheck_opt.h"
 #include "trace50.h"
-#include "read_linux.h"
+#include "shared/tainting/taintcheck_opt.h"
+#include "shared/vmi_c_wrapper.h"
 #include "operandinfo.h"
 #include <xed-interface.h>
 #include "disasm.h"
 #include "tfd.h"
-#include "procmod.h"
 #include "trackproc.h"
 
 /* Map to convert register numbers */
@@ -160,39 +159,6 @@ inline int getOperandOffset (OperandVal *op) {
   return 0;
 }
 
-/* Given an operand, check taint information and store it */
-void set_operand_data(OperandVal *op) {
-
-#if TAINT_ENABLED
-  switch (op->type) {
-    case TRegister: {
-      int regnum = REGNUM(op->addr);
-      int offset = getOperandOffset(op);
-      if(regnum!=-1)
-      op->tainted =
-      (uint16_t) taintcheck_check_reg_compress(regnum, offset, op->length);
-      break;
-    }
-    case TMemLoc: {
-      op->tainted = 
-        (uint16_t) taintcheck_check_virtmem_compress(op->addr, op->length);
-      break;
-    }
-    default:
-    op->tainted = 0;
-    break;
-  }
-
-  if (op->tainted) {
-    insn_tainted=1;
-    record_taint_value(op);
-  }
-#else
-  op->tainted = 0;
-#endif // #if TAINT_ENABLED
-}
-
-
 /* This is the central function
   Given a memory address, reads a bunch of memory bytes and
     calls the disassembler to obtain the information
@@ -292,7 +258,7 @@ void decode_address(uint32_t address, EntryHeader *eh, int ignore_taint)
           eh->operand[op_idx].length =
             (uint8_t) xed_decoded_inst_operand_length (&xedd, i);
           eh->operand[op_idx].access = (uint8_t) xed_operand_rw (op);
-          eh->operand[op_idx].value = DECAF_cpu_regs[regnum];
+          eh->operand[op_idx].value = DECAF_CPU_REGS[regnum];
           switch (eh->operand[op_idx].addr) {
             case ax_reg:
             case bx_reg:
@@ -321,7 +287,7 @@ void decode_address(uint32_t address, EntryHeader *eh, int ignore_taint)
               break;
           }
         }
-        if (ignore_taint == 0) set_operand_data(&(eh->operand[op_idx]));
+        if (ignore_taint == 0) set_operand_taint(&(eh->operand[op_idx]));
         break;
       }
 
@@ -415,8 +381,8 @@ void decode_address(uint32_t address, EntryHeader *eh, int ignore_taint)
               eh->num_operands++;
               int segmentreg = xed2chris_regmapping[seg_regid][0] - 100;
 
-              segbase = DECAF_cpu_segs[segmentreg].base;
-              segsel = DECAF_cpu_segs[segmentreg].selector;
+              segbase = DECAF_CPU_SEGS[segmentreg].base;
+              segsel = DECAF_CPU_SEGS[segmentreg].selector;
 
               eh->memregs[op_idx][0].type = TRegister;
               eh->memregs[op_idx][0].length = 2;
@@ -426,13 +392,13 @@ void decode_address(uint32_t address, EntryHeader *eh, int ignore_taint)
               eh->memregs[op_idx][0].value = segsel;
               eh->memregs[op_idx][0].usage = memsegment;
               if (ignore_taint == 0)
-                set_operand_data(&(eh->memregs[op_idx][0]));
+                set_operand_taint(&(eh->memregs[op_idx][0]));
 
               int dt;
               if (segsel & 0x4)       // ldt
-                dt = DECAF_cpu_ldt->base;
+                dt = DECAF_CPU_LDT->base;
               else                    //gdt
-                dt = DECAF_cpu_gdt->base;
+                dt = DECAF_CPU_GDT->base;
               segsel = segsel >> 3;
 
               unsigned long segent = dt + 8 * segsel;
@@ -477,7 +443,7 @@ void decode_address(uint32_t address, EntryHeader *eh, int ignore_taint)
           if (base_regid != XED_REG_INVALID) {
             eh->num_operands++;
             int basereg = xed2chris_regmapping[base_regid][1];
-            base = DECAF_cpu_regs[basereg];
+            base = DECAF_CPU_REGS[basereg];
             eh->memregs[op_idx][1].type = TRegister;
             eh->memregs[op_idx][1].addr = xed2chris_regmapping[base_regid][0];
             eh->memregs[op_idx][1].length = 4;
@@ -485,7 +451,7 @@ void decode_address(uint32_t address, EntryHeader *eh, int ignore_taint)
             eh->memregs[op_idx][1].value = base;
             eh->memregs[op_idx][1].usage = membase;
             if (ignore_taint == 0) 
-              set_operand_data(&(eh->memregs[op_idx][1]));
+              set_operand_taint(&(eh->memregs[op_idx][1]));
           }
           // Get Index register and Scale
           xed_reg_enum_t index_regid =
@@ -493,7 +459,7 @@ void decode_address(uint32_t address, EntryHeader *eh, int ignore_taint)
           if (mem_idx == 0 && index_regid != XED_REG_INVALID) {
             eh->num_operands++;
             int indexreg = xed2chris_regmapping[index_regid][1];
-            index = DECAF_cpu_regs[indexreg];
+            index = DECAF_CPU_REGS[indexreg];
             eh->memregs[op_idx][2].type = TRegister;
             eh->memregs[op_idx][2].addr = 
               xed2chris_regmapping[index_regid][0];
@@ -502,7 +468,7 @@ void decode_address(uint32_t address, EntryHeader *eh, int ignore_taint)
             eh->memregs[op_idx][2].value = index;
             eh->memregs[op_idx][2].usage = memindex;
             if (ignore_taint == 0) 
-              set_operand_data(&(eh->memregs[op_idx][2]));
+              set_operand_taint(&(eh->memregs[op_idx][2]));
 
             // Get Scale (AKA width) (only have a scale if the index exists)
             if (xed_decoded_inst_get_scale(&xedd,i) != 0) {
@@ -555,13 +521,12 @@ void decode_address(uint32_t address, EntryHeader *eh, int ignore_taint)
           }
 
           // Check if instruction accesses user memory
-          // kernel_mem_start defined in shared/read_linux.c
-          if ((eh->operand[op_idx].addr < kernel_mem_start) &&
+          if ((eh->operand[op_idx].addr < VMI_guest_kernel_base) &&
               (op_name != XED_OPERAND_AGEN))
           {
             access_user_mem = 1;
           }
-          if (ignore_taint == 0) set_operand_data(&(eh->operand[op_idx]));
+          if (ignore_taint == 0) set_operand_taint(&(eh->operand[op_idx]));
         }
         break;
       }
@@ -609,7 +574,7 @@ void decode_address(uint32_t address, EntryHeader *eh, int ignore_taint)
   eh->eflags = 0; /* Gets updated at insn_end */
   eh->df = 0; /* Gets updated at insn_end */
 
-  eh->cc_op = *DECAF_cc_op;
+  eh->cc_op = *DECAF_CC_OP;
 
 //  free(inst);
 
@@ -675,8 +640,8 @@ unsigned int write_insn(FILE *stream, EntryHeader *eh)
     th.magicnumber = MAGIC_NUMBER;
     th.version = VERSION_NUMBER;
     th.n_procs = 1;
-    th.gdt_base = DECAF_cpu_gdt->base;
-    th.idt_base = DECAF_cpu_idt->base;
+    th.gdt_base = DECAF_CPU_GDT->base;
+    th.idt_base = DECAF_CPU_IDT->base;
     num_elems_written += fwrite(&th, sizeof(th), 1, stream);
 
     /* Set flag */
@@ -685,17 +650,17 @@ unsigned int write_insn(FILE *stream, EntryHeader *eh)
     /* for each process */
     ProcRecord pr;
     memset(&pr,0,sizeof(ProcRecord));
-    pr.n_mods = find_process(tracecr3, pr.name,MAX_STRING_LEN, &pr.pid);
+    VMI_find_process_by_cr3_c(tracecr3, pr.name, MAX_STRING_LEN, &pr.pid);
+    pr.n_mods = VMI_get_loaded_modules_count_c(pr.pid);
 
-    old_modinfo_t *pmr =
-      (old_modinfo_t *) malloc(pr.n_mods * sizeof(old_modinfo_t));
+    tmodinfo_t *pmr = (tmodinfo_t *) malloc(pr.n_mods * sizeof(tmodinfo_t));
     if (pmr) {
-      get_proc_modules(pr.pid, pmr, pr.n_mods);
+      VMI_get_proc_modules_c(pr.pid, pr.n_mods, pmr);
     }
     else {
       pr.n_mods = -1;
     }
-    pr.ldt_base = DECAF_cpu_ldt->base;
+    pr.ldt_base = DECAF_CPU_LDT->base;
 
     num_elems_written += fwrite(&pr, sizeof(pr), 1, stream);
 

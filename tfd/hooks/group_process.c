@@ -71,7 +71,7 @@ void NtCreateProcess_ret(void *opaque)
   hookapi_remove_hook(s->hook_handle);
 
   /* Read error code returned in EAX */
-  if (DECAF_cpu_regs[R_EAX] != 0) {
+  if (DECAF_CPU_REGS[R_EAX] != 0) {
     // if the return value is not STATUS_SUCCESS
     goto FINISH;
   }
@@ -114,7 +114,7 @@ void NtCreateProcess_call(void *opaque)
   }
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /*
@@ -133,7 +133,7 @@ void NtCreateProcess_call(void *opaque)
   /* Store parameters */
   createprocess_t *s = malloc(sizeof(createprocess_t));
   if (s == NULL) return;
-  s->eip = *DECAF_cpu_eip;;
+  s->eip = *DECAF_CPU_EIP;;
   s->handle_ptr = stack[1];
   s->access_mask = stack[2];
   s->object_attributes_ptr = stack[3];
@@ -167,7 +167,7 @@ void NtQueryInformationProcess_ret(void *opaque)
   hookapi_remove_hook(s->hook_handle);
 
   /* Read error code returned in EAX */
-  if (DECAF_cpu_regs[R_EAX] != 0) {
+  if (DECAF_CPU_REGS[R_EAX] != 0) {
     // if the return value is not STATUS_SUCCESS
     goto FINISH;
   }
@@ -217,7 +217,7 @@ void NtQueryInformationProcess_call(void *opaque)
   }
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /*
@@ -244,7 +244,7 @@ void NtQueryInformationProcess_call(void *opaque)
   ntqueryinformationprocess_t *s = 
     malloc(sizeof(ntqueryinformationprocess_t));
   if (s == NULL) return;
-  s->eip = *DECAF_cpu_eip;;
+  s->eip = *DECAF_CPU_EIP;;
   s->handle = stack[1];
   s->proc_info_class = stack[2];
   s->proc_info_ptr = stack[3];
@@ -278,7 +278,7 @@ void CloseHandle_ret(void *opaque)
   hookapi_remove_hook(s->hook_handle);
 
   /* Read error code returned in EAX */
-  if (DECAF_cpu_regs[R_EAX] == 0) {
+  if (DECAF_CPU_REGS[R_EAX] == 0) {
     // if the return value is not STATUS_SUCCESS
     goto FINISH;
   }
@@ -306,7 +306,7 @@ void CloseHandle_call(void *opaque)
   }
 
   /* Read stack starting at ESP */
-  if(DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], sizeof(stack), stack) == -1)
+  if(DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], sizeof(stack), stack) == -1)
     return;
 
   /*
@@ -318,7 +318,7 @@ void CloseHandle_call(void *opaque)
   /* Store parameters */
   closehandle_t *s = malloc(sizeof(closehandle_t));
   if (s == NULL) return;
-  s->eip = *DECAF_cpu_eip;;
+  s->eip = *DECAF_CPU_EIP;;
   s->handle = stack[1];
 
   //WRITE("stderr", "NtCloseHandle...PID: %u Handle: %u\n", 

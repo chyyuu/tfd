@@ -75,11 +75,19 @@
 #define MAX_OPERAND_LEN 16 /* Max length of an operand in bytes */
 #define MAX_INSN_BYTES 15 /* Maximum number of bytes in a x86 instruction */
 
+/* Macro to access address and value of register operand */
+#define REGOP_ADDR(op) ((op).addr.reg_addr)
+#define REGOP_VAL(op) ((op).value.val32)
+
+/* Macro to access address and value of a memory operand */
+#define MEMOP_ADDR(op) ((op).addr.mem32_addr)
+#define MEMOP_VAL(op) ((op).value.val32)
+
 /* Macros to access register ids / values */
 #define REGNUM(regid) (regmapping[(regid) - 100])
-#define MMXVAL(regid) (DECAF_cpu_fp_regs[(regid) - 164].mmx.q)
-#define XMMVAL(regid,idx) (DECAF_cpu_xmm_regs[(regid) - 172]._q[(idx)])
-#define FLOATVAL(regid) (DECAF_cpu_fp_regs[(regid) - 188].d)
+#define MMXVAL(regid) (DECAF_CPU_FP_REGS[(regid) - 164].mmx.q)
+#define XMMVAL(regid,idx) (DECAF_CPU_XMM_REGS[(regid) - 172]._q[(idx)])
+#define FLOATVAL(regid) (DECAF_CPU_FP_REGS[(regid) - 188].d)
 
 enum OpUsage { unknown = 0, esp, counter, membase, memindex, memsegment,
   memsegent0, memsegent1, memdisplacement, memscale, eflags };

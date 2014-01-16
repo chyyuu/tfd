@@ -23,9 +23,10 @@
 
 #include "config.h"
 #undef INLINE
-#include "shared/procmod.h"
-#include "shared/hookapi.h"
+#include "DECAF_main.h"
 #include "DECAF_target.h"
+#include "shared/hookapi.h"
+#include "shared/vmi_c_wrapper.h"
 #include "hook_helpers.h"
 #include "tfd.h"
 #include "hook_plugin_loader.h"

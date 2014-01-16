@@ -71,6 +71,15 @@
 #define MAX_OPERAND_LEN 8 /* Max length of an operand in bytes */
 #define MAX_INSN_BYTES 15 /* Maximum number of bytes in a x86 instruction */
 
+/* Macro to access address and value of register operand */
+#define REGOP_ADDR(op) ((op).addr)
+#define REGOP_VAL(op) ((op).value)
+
+/* Macro to access address and value of a memory operand */
+#define MEMOP_ADDR(op) ((op).addr)
+#define MEMOP_VAL(op) ((op).value)
+
+
 #define REGNUM(regid) (regmapping[(regid) - 100])
 
 enum OpUsage { unknown = 0, esp, counter, membase, memindex, memsegment,

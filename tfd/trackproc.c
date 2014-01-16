@@ -22,14 +22,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include "shared/procmod.h"
 #ifdef TRACE_VERSION_50
 #include "trace50.h"
 #else
 #include "trace.h"
 #endif
 #include "trackproc.h"
-#include "DECAF_target.h"
+#include "decaf_target.h"
 
 /* Tracked Process information */
 typedef struct {
@@ -90,7 +89,7 @@ int trackproc_is_running()
 
 uint32_t trackproc_get_current_pid(void)
 {
-  return find_pid(DECAF_cpu_cr[3]);
+  return VMI_find_pid_by_cr3_c(DECAF_CPU_CR[3]);
 }
 
 
@@ -183,7 +182,9 @@ procinfo_t *trackproc_get_tracked_processes_info(
   unsigned int i;
 
   if (tracked_pid == -1) {
-    proc_arr = find_all_processes_info(&num_procs);
+    num_procs = VMI_get_all_processes_count_c();
+    proc_arr = (procinfo_t *) malloc(sizeof(procinfo_t)*num_procs);
+    VMI_find_all_processes_info_c(num_procs, proc_arr);
     *num_tracked_proc = num_procs;
   }
   else {
@@ -192,7 +193,8 @@ procinfo_t *trackproc_get_tracked_processes_info(
     if (proc_arr) {
       for (i = 0; i < l_iNumProc; i++) {
         curr_pid = l_arTrackProcInfo[i].m_uiPID;
-        num_mods = find_process_by_pid(curr_pid, proc_name, 512,&cr3);
+        num_mods = VMI_get_loaded_modules_count_c(curr_pid);
+        VMI_find_process_by_pid_c(curr_pid, proc_name, 512, &cr3);
         if (cr3 != -1) {
           proc_arr[i].pid = curr_pid;
           proc_arr[i].cr3 = cr3;

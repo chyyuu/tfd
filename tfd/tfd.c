@@ -31,10 +31,8 @@
 #include <assert.h>
 #include "tfd.h"
 #include "slirp/slirp.h"
-#include "read_linux.h"
 #include "reg_ids.h"
 #include "DECAF_main.h"
-#include "DECAF_target.h"
 #include "DECAF_callback.h"
 #include "conf.h"
 #include "skiptaint.h"
@@ -49,7 +47,7 @@
 #endif
 #include "trackproc.h"
 #include "shared/function_map.h"
-#include "shared/procmod.h"
+#include "shared/vmi_c_wrapper.h"
 // No Sleuthkit for now
 // #include "libfstools.h"
 /* plugin loading */
@@ -113,10 +111,8 @@ unsigned int tracing_child = 0;
 /* Whether the current instruction is tainted (if !=0 it is tainted) */
 uint32_t insn_tainted=0;
 
-/* Origin and offset set by the taint_sendkey monitor command */
+/* Flag to indicate that next keystroke in callback needs to be tainted */
 #ifdef TAINT_ENABLED
-static int taint_sendkey_origin = 0;
-static int taint_sendkey_offset = 0;
 static int taint_key_enabled = 0;
 #endif
 
@@ -190,7 +186,7 @@ int tracing_start(uint32_t pid, const char *filename)
   }
 
   /* Set PID and CR3 of the process to be traced */
-  tracecr3 = find_cr3(pid);
+  tracecr3 = VMI_find_cr3_by_pid_c(pid);
   if (0 == tracecr3) {
     monitor_printf(default_mon, 
                   "CR3 for PID %d not found. Tracing all processes!\n",pid);
@@ -344,27 +340,6 @@ void tracing_stop()
 }
 
 
-// Placeholders: No default propagate function and No Sleuthkit for now
-#ifdef TAINT_ENABLED
-static void tracing_taint_disk (uint64_t addr, uint8_t * record, void *opaque)
-{
-  return;
-}
-
-static void tracing_read_disk_taint (uint64_t addr, uint8_t * record, 
-                                      void *opaque) 
-{
-  return;
-}
-
-static void tracing_taint_propagate (int nr_src, taint_operand_t *src_oprnds,
-                taint_operand_t *dst_oprnd, int mode)
-{
-  return;
-}
-#endif // ifdef TAINT_ENABLED
-
-
 void tracing_block_begin(DECAF_Callback_Params* params)
 {
   char current_proc[512] = "";
@@ -376,11 +351,11 @@ void tracing_block_begin(DECAF_Callback_Params* params)
 
   /* Get thread id (needs to be done before checking hooks) */
   // TODO: Are hooks checked before or after invoking block begin handler?
-  current_tid = get_current_tid(env);
+  current_tid = VMI_get_current_tid_c(env);
 
   // Let DECAF now that we want to hook the instructions in this block
   should_monitor = 
-    (decaf_plugin->monitored_cr3 == DECAF_cpu_cr[3]) && 
+    (decaf_plugin->monitored_cr3 == DECAF_CPU_CR[3]) && 
     (!DECAF_is_in_kernel() || tracing_kernel());
 
   /* If not right context, return */
@@ -394,8 +369,8 @@ void tracing_block_begin(DECAF_Callback_Params* params)
   /* If tracing module, check if we are in traced module */
   if (modname_is_set()) {
     // Get current module name
-    tmodinfo_t *mi =
-      locate_module(*DECAF_cpu_eip, DECAF_cpu_cr[3], current_proc);
+    tmodinfo_t *mi = (tmodinfo_t *) malloc(sizeof(tmodinfo_t));
+    VMI_locate_module_c(*DECAF_CPU_EIP, DECAF_CPU_CR[3], current_proc, mi);
 
     // Check if right module
     if (mi && (modname_match(mi->name))) {
@@ -413,41 +388,42 @@ static void tracing_send_keystroke(DECAF_Callback_Params *params)
   /* If not tracing, return */
   if  (tracepid == 0)
     return;
+
+  /* If we do not need to taint the key, return */
   if(!taint_key_enabled)
     return;
 
-  int keycode=params->ks.keycode;
+  /* Taint the key */
   uint32_t *taint_mark=params->ks.taint_mark;
   *taint_mark=taint_key_enabled;
+
+  /* Disable flag so that next keystroke is not tainted */
   taint_key_enabled=0;
-  printf("taint keystroke %d \n ",keycode);
+
+  /* Print keystroke */
+  int keycode=params->ks.keycode;
+  printf("Tainted keystroke %d \n ", keycode);
 }
-#endif //TAINT_ENABLED
 
-
-#ifdef TAINT_ENABLED
 void do_taint_sendkey(Monitor *mon, const QDict *qdict)
 {
-  // Set the origin and offset for the callback
-  if(qdict_haskey(qdict, "key") &&
-    qdict_haskey(qdict, "taint_origin") &&
-    qdict_haskey(qdict, "offset"))
+  if(qdict_haskey(qdict, "key")) 
   {
-    //register keystroke callback
-    taint_key_enabled=1;
+    // Register keystroke callback if not registered
     if (!keystroke_cb_handle) {
       keystroke_cb_handle = DECAF_register_callback(DECAF_KEYSTROKE_CB,
         tracing_send_keystroke, &taint_key_enabled);
     }
 
-    taint_sendkey_origin = qdict_get_int(qdict, "taint_origin");
-    taint_sendkey_offset = qdict_get_int(qdict, "offset");
+    // Set taint flag to tell callback to taint the key
+    taint_key_enabled=1;
+
     // Send the key
     do_send_key(qdict_get_str(qdict, "key"));
-
   }
-  else
+  else {
     monitor_printf(mon, "taint_sendkey command is malformed\n");
+  }
 }
 #endif //TAINT_ENABLED
 
@@ -542,7 +518,7 @@ static void do_tracing_by_name_internal(const char *progname,
                                         const char *filename)
 {
   /* If process already running, start tracing */
-  uint32_t pid = find_pid_by_name(progname);
+  uint32_t pid = VMI_find_pid_by_name_c((char  *)progname);
   uint32_t minus_one = (uint32_t)(-1);
   if (pid != minus_one) {
     do_tracing_internal(pid,filename);
@@ -632,7 +608,7 @@ void tracing_insn_begin(DECAF_Callback_Params* params)
   //  return;
 
   /* Get thread id */
-  current_tid = get_current_tid(env);
+  current_tid = VMI_get_current_tid_c(env);
 
   // Flag to be set if the instruction is written
   insn_already_written = 0;
@@ -643,7 +619,7 @@ void tracing_insn_begin(DECAF_Callback_Params* params)
   /* Disassemble the instruction */
   insn_tainted=0;
   if (skip_decode_address == 0) {
-    decode_address(*DECAF_cpu_eip, &eh, get_st(current_tid));
+    decode_address(*DECAF_CPU_EIP, &eh, get_st(current_tid));
   }
 
 }
@@ -679,13 +655,13 @@ void tracing_insn_end(DECAF_Callback_Params* params)
   }
 
   /* Update the eflags */
-  eh.eflags = *DECAF_cpu_eflags;
+  eh.eflags = *DECAF_CPU_EFLAGS;
 #ifndef TRACE_VERSION_50
   if (eflags_idx != -1) {
-    eh.operand[eflags_idx].value.val32 = *DECAF_cpu_eflags;
+    eh.operand[eflags_idx].value.val32 = *DECAF_CPU_EFLAGS;
   }
 #endif
-  eh.df = (*DECAF_cpu_df == 1)? 0x1 : 0xff;
+  eh.df = (*DECAF_CPU_DF == 1)? 0x1 : 0xff;
 
   /* Clear eh.tp if inside a function hook */
   if (get_st(current_tid) > 0) eh.tp = TP_NONE;
@@ -773,19 +749,6 @@ int tracing_cjmp(uint32_t t0)
 }
 
 
-void set_table_lookup(Monitor *mon, const QDict *qdict)
-{
-  if (qdict_get_int(qdict, "state")) {
-    tracing_table_lookup = 1;
-    monitor_printf(default_mon, "Table lookup on.\n");
-  }
-  else {
-    tracing_table_lookup = 0;
-    monitor_printf(default_mon, "Table lookup off.\n");
-  }
-}
-
-
 /* Param format
     <pid>:<traceFilename>:<pidToSignal>:<processName>
 */
@@ -843,13 +806,6 @@ void tracing_after_loadvm(const char*param)
 
 #endif // #ifdef TAINT_ENABLED  
 
-
-  /* OS dependant initialization */
-  if (0 == taskaddr)
-    init_kernel_offsets();
-  if (0xC0000000 == kernel_mem_start) /* linux */
-    update_proc(0);
-
   /* Load hooks */
   do_load_hooks_internal("","");
 
@@ -887,13 +843,13 @@ void set_trace_writing(Monitor *mon, const QDict *qdict)
   }
 }
 
-static void tracing_proc_start(procmod_Callback_Params * params)
+static void tracing_proc_start(VMI_Callback_Params * params)
 {
   /* If tracingbyname, check if this is the process to trace. 
       If so, start the trace */
   if (procname_is_set()) {
-    if (procname_match(params->lmm.name)) {
-      uint32_t pid = params->lmm.pid;
+    if (procname_match(params->cp.name)) {
+      uint32_t pid = params->cp.pid;
 
       // Start tracing
       do_tracing_internal(pid, tracefile);
@@ -911,7 +867,7 @@ static void tracing_proc_start(procmod_Callback_Params * params)
     if ((trackproc_find_pid(curr_pid) != -1) &&
         (curr_pid != trackproc_get_root_pid()))
     {
-      uint32_t child_cr3 = find_cr3(curr_pid);
+      uint32_t child_cr3 = VMI_find_cr3_by_pid_c(curr_pid);
 
       if (0 == child_cr3) {
         monitor_printf(default_mon, 
@@ -965,14 +921,13 @@ static void tracing_cleanup(void)
   /* If tracing is on, stop it */
   tracing_stop();
 
-  /* Remove procmod handles */
+  /* Remove VMI handles */
   if (removeproc_handle != DECAF_NULL_HANDLE) {
-    procmod_unregister_callback(PROCMOD_REMOVEPROC_CB, removeproc_handle);
+    VMI_unregister_callback(VMI_REMOVEPROC_CB, removeproc_handle);
     removeproc_handle = DECAF_NULL_HANDLE;
   }
   if (loadmainmodule_handle != DECAF_NULL_HANDLE) {
-    procmod_unregister_callback(PROCMOD_LOADMAINMODULE_CB, 
-                                loadmainmodule_handle);
+    VMI_unregister_callback(VMI_CREATEPROC_CB, loadmainmodule_handle);
     loadmainmodule_handle = DECAF_NULL_HANDLE;
   }
 
@@ -1026,32 +981,18 @@ static mon_cmd_t tracing_info_cmds[] = {
 plugin_interface_t * init_plugin()
 {
   /* Select string comparison function */
-  if (0x80000000 == kernel_mem_start)
+  /* NOTE: this should be handle by VMI module if needed */
+  if (0x80000000 == VMI_guest_kernel_base)
     comparestring = strcasecmp;
   else
     comparestring = strcmp;
 
-
-#ifdef TAINT_ENABLED 
-  taint_config->taint_record_size = sizeof(taint_record_t);
-  taint_config->taint_propagate = tracing_taint_propagate;
-  taint_config->taint_disk = tracing_taint_disk;
-  taint_config->read_disk_taint = tracing_read_disk_taint;
-  taint_config->eip_tainted = taintedeip_detection;
-#endif // #ifdef TAINT_ENABLED  
 
   /* Set interface fields */
   tracing_interface.plugin_cleanup = tracing_cleanup;
   tracing_interface.mon_cmds = tracing_term_cmds;
   tracing_interface.info_cmds = tracing_info_cmds;
   tracing_interface.after_loadvm = tracing_after_loadvm;
-  // No Sleuthkit for now
-  //tracing_interface.bdrv_open = tracing_bdrv_open;
-
-#if 0
-  tracing_interface.cjmp = tracing_cjmp;
-#endif  
-
 
   /* Register callbacks */
   DECAF_stop_vm();
@@ -1073,12 +1014,10 @@ plugin_interface_t * init_plugin()
   keystroke_cb_handle = DECAF_NULL_HANDLE;
 
   removeproc_handle = 
-    procmod_register_callback(PROCMOD_REMOVEPROC_CB, 
-                              procexit_detection, NULL);
+    VMI_register_callback(VMI_REMOVEPROC_CB, procexit_detection, NULL);
 
   loadmainmodule_handle = 
-    procmod_register_callback(PROCMOD_LOADMAINMODULE_CB, 
-                              tracing_proc_start, NULL);
+    VMI_register_callback(VMI_CREATEPROC_CB, tracing_proc_start, NULL);
 
   /* Initialize tracing */
   tracing_init();

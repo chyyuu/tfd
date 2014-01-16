@@ -20,8 +20,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _STATE_H_
-#define _STATE_H_
+#ifndef _STATE20_H_
+#define _STATE20_H_
 
 #include "DECAF_main.h"
 
@@ -77,4 +77,4 @@ int save_state_by_pid(uint32_t pid, const char *filename);
 */
 int save_state_at_addr(uint32_t pid, uint32_t addr, const char *filename);
 
-#endif // _STATE_H_
+#endif // _STATE20_H_

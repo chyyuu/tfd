@@ -110,6 +110,13 @@
   .params = "state", 
   .help = "set flag to trace kernel instructions that modify user space memory"
 },
+{
+  .name = "filter_single_thread_only",
+  .args_type = "state:i",
+  .mhandler.cmd = set_single_thread_only,
+  .params = "state",
+  .help = "set flag to trace only instructions from the same thread as the first instruction"
+},
 
 /* Record process state */
 {
@@ -150,14 +157,6 @@
 
 /************************** Taint-related commands ************************/
 #ifdef TAINT_ENABLED
-// Propagate taint on table lookups
-{ 
-  .name = "table_lookup", 
-  .args_type = "state:i", 
-  .mhandler.cmd = set_table_lookup,
-  .params = "state", 
-  .help = "set flag to propagate tainted memory index"
-},
 // Taint network
 {
   .name = "taint_nic",
@@ -188,13 +187,6 @@
   .help = "set flag to trace only tainted instructions"
 },
 {
-  .name = "filter_single_thread_only",
-  .args_type = "state:i",
-  .mhandler.cmd = set_single_thread_only,
-  .params = "state",
-  .help = "set flag to trace only instructions from the same thread as the first instruction"
-},
-{
   .name = "filter_kernel_tainted",
   .args_type = "state:i",
   .mhandler.cmd = set_kernel_tainted,
@@ -204,9 +196,9 @@
 // Taint keystroke
 {
   .name = "taint_sendkey",
-  .args_type = "key:s,taint_origin:i,offset:i",
+  .args_type = "key:s",
   .mhandler.cmd = do_taint_sendkey,
-  .params = "key taint_origin offset",
+  .params = "key",
   .help = "send a tainted key to the guest system"
 },
 #endif // #ifdef TAINT_ENABLED

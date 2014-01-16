@@ -64,7 +64,7 @@ uint32_t get_retaddr() {
 
   // TODO: Should CPU State be non-NULL?
   read_err = 
-    DECAF_read_mem(NULL, DECAF_cpu_regs[R_ESP], 4, (unsigned char*)&retaddr);
+    DECAF_read_mem(NULL, DECAF_CPU_REGS[R_ESP], 4, (unsigned char*)&retaddr);
   if (read_err)
     return 0;
   else
@@ -138,7 +138,7 @@ uint32_t get_arg(int argnum)
   uint32_t arg;
   int read_err = 0;
 
-  read_err = read_mem(DECAF_cpu_regs[R_ESP]+4*argnum, 4, (unsigned char*)&arg);
+  read_err = read_mem(DECAF_CPU_REGS[R_ESP]+4*argnum, 4, (unsigned char*)&arg);
   if (read_err) return -1;
 
   return arg;
@@ -197,7 +197,7 @@ int is_arg_tainted(int argnum)
   taint_record_t tr[4];
   memset((void *)tr,0,4*sizeof(taint_record_t));
 
-  taint = get_mem_taint (DECAF_cpu_regs[R_ESP]+4*argnum, 4, (uint8_t *)&tr);
+  taint = get_mem_taint (DECAF_CPU_REGS[R_ESP]+4*argnum, 4, (uint8_t *)&tr);
 
   if(taint)
     return 1;

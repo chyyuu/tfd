@@ -26,9 +26,8 @@
 #include "state20.h"
 #include "bswap.h"
 #include "shared/hookapi.h"
-#include "shared/procmod.h"
-#include "shared/read_linux.h"
-#include "DECAF_target.h"
+#include "shared/vmi_c_wrapper.h"
+#include "decaf_target.h"
 
 #define STATE_PAGE_SIZE 4096
 
@@ -57,22 +56,22 @@ typedef struct {
 /* Save registers */
 void save_registers(struct state_file_regs_struct *regs)
 {
-  regs->eax = DECAF_cpu_regs[R_EAX];
-  regs->ebx = DECAF_cpu_regs[R_EBX];
-  regs->ecx = DECAF_cpu_regs[R_ECX];
-  regs->edx = DECAF_cpu_regs[R_EDX];
-  regs->esi = DECAF_cpu_regs[R_ESI];
-  regs->edi = DECAF_cpu_regs[R_EDI];
-  regs->ebp = DECAF_cpu_regs[R_EBP];
-  regs->esp = DECAF_cpu_regs[R_ESP];
-  regs->eip = *DECAF_cpu_eip;
-  regs->eflags = *DECAF_cpu_eflags;
-  regs->xcs = DECAF_cpu_segs[R_CS].selector;
-  regs->xds = DECAF_cpu_segs[R_DS].selector;
-  regs->xes = DECAF_cpu_segs[R_ES].selector;
-  regs->xfs = DECAF_cpu_segs[R_FS].selector;
-  regs->xgs = DECAF_cpu_segs[R_GS].selector;
-  regs->xss = DECAF_cpu_segs[R_SS].selector;
+  regs->eax = DECAF_CPU_REGS[R_EAX];
+  regs->ebx = DECAF_CPU_REGS[R_EBX];
+  regs->ecx = DECAF_CPU_REGS[R_ECX];
+  regs->edx = DECAF_CPU_REGS[R_EDX];
+  regs->esi = DECAF_CPU_REGS[R_ESI];
+  regs->edi = DECAF_CPU_REGS[R_EDI];
+  regs->ebp = DECAF_CPU_REGS[R_EBP];
+  regs->esp = DECAF_CPU_REGS[R_ESP];
+  regs->eip = *DECAF_CPU_EIP;
+  regs->eflags = *DECAF_CPU_EFLAGS;
+  regs->xcs = DECAF_CPU_SEGS[R_CS].selector;
+  regs->xds = DECAF_CPU_SEGS[R_DS].selector;
+  regs->xes = DECAF_CPU_SEGS[R_ES].selector;
+  regs->xfs = DECAF_CPU_SEGS[R_FS].selector;
+  regs->xgs = DECAF_CPU_SEGS[R_GS].selector;
+  regs->xss = DECAF_CPU_SEGS[R_SS].selector;
   regs->orig_eax = 0;           //? Do we need to remember the call number
 }
 
@@ -80,7 +79,7 @@ void save_registers(struct state_file_regs_struct *regs)
 void save_state(void *opaque)
 {
   /* remove address hook */
-  if ((stateaddr_hook_handle) && (*DECAF_cpu_eip == stateaddr)) {
+  if ((stateaddr_hook_handle) && (*DECAF_CPU_EIP == stateaddr)) {
     monitor_printf(default_mon, "Saving state at address: 0x%08x\n",
                     stateaddr);
     hookapi_remove_hook(stateaddr_hook_handle);
@@ -114,25 +113,16 @@ void save_state(void *opaque)
   uint32_t stop_addr = 0xFFFFE000;
 
 #if SAVE_KERNEL_MEM == 0
-  uint32_t kernel_start_addr;
   // Avoid saving kernel memory if not requested
-  if (taskaddr) { 
-    // linux
-    kernel_start_addr = 0xC0000000;
-  } else { 
-    // windows
-    kernel_start_addr = 0x80000000;
-  }
-  stop_addr = kernel_start_addr - STATE_PAGE_SIZE; 
+  stop_addr = VMI_guest_kernel_base - STATE_PAGE_SIZE; 
 #endif
 
   for (page_start_addr = 0; page_start_addr <= stop_addr; 
        page_start_addr+= STATE_PAGE_SIZE)
   {
     //monitor_printf(default_mon, "Page_start: 0x%08x\n", page_start_addr);
-    err = DECAF_read_mem_with_cr3(NULL, statecr3, page_start_addr,
+    err = DECAF_read_mem_with_pgd(NULL, statecr3, page_start_addr,
                                     STATE_PAGE_SIZE, buf);
-
     if (!err) {
       map_t range;
       range.begin = page_start_addr;
@@ -178,7 +168,7 @@ int save_state_by_pid(uint32_t pid, const char *filename) {
     return 1;
   }
 
-  statecr3 = find_cr3(pid);
+  statecr3 = VMI_find_cr3_by_pid_c(pid);
   if (0 == statecr3)
     return 1;
 
@@ -191,7 +181,7 @@ int save_state_by_pid(uint32_t pid, const char *filename) {
  * when process execution reaches given address */
 int save_state_at_addr(uint32_t pid, uint32_t addr, const char *filename)
 {
-  statecr3 = find_cr3(pid);
+  statecr3 = VMI_find_cr3_by_pid_c(pid);
   if (0 == statecr3)
     return 1;
 

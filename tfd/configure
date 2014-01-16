@@ -2,7 +2,6 @@
 
 target="i386-softmmu"
 plugin_path=$(pwd)
-echo plugin path is $plugin_path
 
 decaf_path=""
 tcg_taint="no"
@@ -28,10 +27,10 @@ for opt do
   --state20) state_version="20"
   ;;
 # UNSUPPORTED yet
-#  --enable-tcg-taint) tcg_taint="yes"
-#  ;;
-#  --disable-tcg-taint) tcg_taint="no"
-#  ;;
+  --enable-taint) tcg_taint="yes"
+  ;;
+  --disable-taint) tcg_taint="no"
+  ;;
   *) echo "ERROR: unknown option $opt"; show_help="yes"
   ;;
   esac
@@ -46,11 +45,16 @@ EOF
 echo "Standard options:"
 echo "  --help                  print this message"
 echo "  --decaf-path=PATH       path to DECAF (must be specified)"
+echo "  --trace60               generate traces v60"
+echo "  --trace50               generate traces v50 (default)"
+echo "  --state40               generate state files v40"
+echo "  --state20               generate state files v20 (default)"
+echo "  --latest                generate traces v60 and state files v40"
 echo ""
-# echo "Advanced options (experts only):"
-# echo "  --disable-tcg-taint      disable taint IR generation via TCG (default)"
-# echo "  --enable-tcg-taint       enable taint IR generation via TCG"
-# echo ""
+echo "Advanced options (experts only):"
+echo "  --enable-taint       enable taint IR generation via TCG"
+echo "  --disable-taint      disable taint IR generation via TCG (default)"
+echo ""
 exit 1
 fi
 
@@ -60,10 +64,25 @@ if [[ ! $decaf_path ]] ; then
   exit
 fi
 
-echo path to DECAF is $decaf_path
-echo trace version is $trace_version
-echo state version is $state_version
-# echo taint enabled is $tcg_taint
+# Get DECAF version
+decaf_version=`basename $decaf_path`
+minor_idx=$((${#decaf_version}-1))
+decaf_minor_version=${decaf_version:$minor_idx:1}
+
+# Check we have at least DECAF1.7
+if [ $decaf_minor_version -lt 7 ]; then
+  echo
+  echo "ERROR: TFD 1.1 requires at least DECAF1.7 but your version is $decaf_version"
+  exit
+fi
+
+# Print info 
+echo plugin path: $plugin_path
+echo DECAF path: $decaf_path
+echo trace version: $trace_version
+echo state version: $state_version
+echo taint enabled: $tcg_taint
+
 
 config_h="config.h"
 config_mak="config-plugin.mak"
@@ -95,5 +114,4 @@ fi
 if test "$tcg_taint" = "yes" ; then
   echo "#define TAINT_ENABLED 1" >> $config_h
 fi
-
 

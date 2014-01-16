@@ -26,12 +26,16 @@
 #include <assert.h>
 #include "state.h"
 #include "DECAF_main.h"
+#include "DECAF_target.h"
+#ifdef TRACE_VERSION_50
+#include "trace50.h"
+#else
 #include "trace.h"
+#endif
 #include "bswap.h"
 #include "shared/hookapi.h"
-#include "shared/procmod.h"
-#include "shared/read_linux.h"
-#include "DECAF_target.h"
+#include "shared/vmi_c_wrapper.h"
+#include "decaf_target.h"
 
 /* Maximum number of bytes that cpu_physical_memory_rw can read */
 #define MAX_PHYS_MEMSIZE_READ 1024
@@ -60,22 +64,22 @@ static SaveStateOptions save_state_options;
 /* Save registers */
 void save_registers(struct state_file_regs_struct *regs)
 {
-  regs->eax = DECAF_cpu_regs[R_EAX];
-  regs->ebx = DECAF_cpu_regs[R_EBX];
-  regs->ecx = DECAF_cpu_regs[R_ECX];
-  regs->edx = DECAF_cpu_regs[R_EDX];
-  regs->esi = DECAF_cpu_regs[R_ESI];
-  regs->edi = DECAF_cpu_regs[R_EDI];
-  regs->ebp = DECAF_cpu_regs[R_EBP];
-  regs->esp = DECAF_cpu_regs[R_ESP];
-  regs->eip = *DECAF_cpu_eip;
-  regs->eflags = *DECAF_cpu_eflags;
-  regs->xcs = DECAF_cpu_segs[R_CS].selector;
-  regs->xds = DECAF_cpu_segs[R_DS].selector;
-  regs->xes = DECAF_cpu_segs[R_ES].selector;
-  regs->xfs = DECAF_cpu_segs[R_FS].selector;
-  regs->xgs = DECAF_cpu_segs[R_GS].selector;
-  regs->xss = DECAF_cpu_segs[R_SS].selector;
+  regs->eax = DECAF_CPU_REGS[R_EAX];
+  regs->ebx = DECAF_CPU_REGS[R_EBX];
+  regs->ecx = DECAF_CPU_REGS[R_ECX];
+  regs->edx = DECAF_CPU_REGS[R_EDX];
+  regs->esi = DECAF_CPU_REGS[R_ESI];
+  regs->edi = DECAF_CPU_REGS[R_EDI];
+  regs->ebp = DECAF_CPU_REGS[R_EBP];
+  regs->esp = DECAF_CPU_REGS[R_ESP];
+  regs->eip = *DECAF_CPU_EIP;
+  regs->eflags = *DECAF_CPU_EFLAGS;
+  regs->xcs = DECAF_CPU_SEGS[R_CS].selector;
+  regs->xds = DECAF_CPU_SEGS[R_DS].selector;
+  regs->xes = DECAF_CPU_SEGS[R_ES].selector;
+  regs->xfs = DECAF_CPU_SEGS[R_FS].selector;
+  regs->xgs = DECAF_CPU_SEGS[R_GS].selector;
+  regs->xss = DECAF_CPU_SEGS[R_SS].selector;
   regs->orig_eax = 0;           //? Do we need to remember the call number
 }
 
@@ -92,7 +96,7 @@ void save_state(void *opaque)
     options->snapshot_type & STATE_SNAPSHOT_TYPE_SYSTEM;
 
   /* remove address hook */
-  if ((options->hook_handle) && (*DECAF_cpu_eip == options->stateaddr)) {
+  if ((options->hook_handle) && (*DECAF_CPU_EIP == options->stateaddr)) {
     monitor_printf(default_mon, "Saving state at address: 0x%08x\n",
                     options->stateaddr);
     hookapi_remove_hook(options->hook_handle);
@@ -161,8 +165,8 @@ void save_state(void *opaque)
   uint32_t stop_addr;
   if (process_snapshot) {
 #if SAVE_KERNEL_MEM == 0
-    // kernel_mem_start defined in shared/read_linux.c
-    stop_addr = kernel_mem_start - STATE_PAGE_SIZE;
+    // Avoid saving kernel memory if not requested
+    stop_addr = VMI_guest_kernel_base - STATE_PAGE_SIZE;
 #else
     stop_addr = 0xFFFFE000;
 #endif
@@ -181,7 +185,7 @@ void save_state(void *opaque)
     if (process_snapshot) {
       //monitor_printf(default_mon, "Page_start: 0x%08x (virtual)\n", 
       //  page_start_addr);
-      err = DECAF_read_mem_with_cr3(NULL, options->statecr3, page_start_addr,
+      err = DECAF_read_mem_with_pgd(NULL, options->statecr3, page_start_addr,
                                     STATE_PAGE_SIZE, page_buf);
     }
     else {
@@ -210,7 +214,7 @@ void save_state(void *opaque)
 
       /* Process snapshot and physical address */
       if (process_snapshot && !use_virtual_addresses) {
-        uint32_t phys_addr = DECAF_get_physaddr_with_cr3(NULL, 
+        uint32_t phys_addr = DECAF_get_phys_addr_with_pgd(NULL, 
                                 options->statecr3, page_start_addr);
         range.begin = phys_addr;
         range.end = phys_addr + STATE_PAGE_SIZE - 1;
@@ -246,7 +250,7 @@ void save_state(void *opaque)
 
       /* Get physical address for this page */
       if (process_snapshot) {
-        page_phys_addr = DECAF_get_physaddr_with_cr3(NULL, options->statecr3, 
+        page_phys_addr = DECAF_get_phys_addr_with_pgd(NULL, options->statecr3, 
                                                       page_start_addr);
         //monitor_printf(default_mon, "PhysAddr: 0x%08x\n", page_phys_addr);
       }
@@ -366,7 +370,7 @@ int save_state_by_pid(uint32_t pid, const char *filename, int snapshot_type) {
   uint32_t statecr3;
 
   /* Find CR3 */
-  statecr3 = find_cr3(pid);
+  statecr3 = VMI_find_cr3_by_pid_c(pid);
   if (0 == statecr3)
     return 1;
 
@@ -400,7 +404,7 @@ int save_state_at_addr(uint32_t pid, uint32_t addr, const char *filename,
   FILE *statelog;
 
   /* Find CR3 */
-  statecr3 = find_cr3(pid);
+  statecr3 = VMI_find_cr3_by_pid_c(pid);
   if (0 == statecr3)
     return 1;
 

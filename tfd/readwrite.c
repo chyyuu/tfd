@@ -21,6 +21,7 @@
 #include "readwrite.h"
 #include "config.h"
 #include "tfd.h"
+#include "decaf_target.h"
 #include "DECAF_main.h"
 #include "DECAF_target.h"
 #include "assert.h"
@@ -76,14 +77,15 @@ void update_written_operands (EntryHeader *eh) {
         case XED_OPERAND_ACTION_CW: {
           // Just update the operand value
           if (eh->operand[i].type == TRegister) {
-            int regnum = REGNUM(eh->operand[i].addr.reg_addr);
-            eh->operand[i].value.val32 = DECAF_cpu_regs[regnum];
+            int regnum = REGNUM(REGOP_ADDR(eh->operand[i]));
+            REGOP_VAL(eh->operand[i]) = DECAF_CPU_REGS[regnum];
           }
           else if (eh->operand[i].type == TMemLoc) {
-            DECAF_read_mem(NULL, eh->operand[i].addr.mem32_addr,
+            DECAF_read_mem(NULL, MEMOP_ADDR(eh->operand[i]),
               (int)(eh->operand[i].length),
-              (uint8_t *)&(eh->operand[i].value.val32));
+              (uint8_t *)&(MEMOP_VAL(eh->operand[i])));
           }
+#ifndef TRACE_VERSION_50
           else if (eh->operand[i].type == TMMXRegister) {
             int regnum = eh->operand[i].addr.reg_addr;
             eh->operand[i].value.val64 = MMXVAL(regnum);
@@ -94,10 +96,10 @@ void update_written_operands (EntryHeader *eh) {
           }
           else if (eh->operand[i].type == TFloatControlRegister) {
             if (eh->operand[i].addr.reg_addr == fpu_status_reg) {
-              eh->operand[i].value.val32 = (uint32_t) *DECAF_cpu_fpus;
+              eh->operand[i].value.val32 = (uint32_t) *DECAF_CPU_FPUS;
             }
             else if (eh->operand[i].addr.reg_addr == fpu_control_reg) {
-              eh->operand[i].value.val32 = (uint32_t) *DECAF_cpu_fpuc;
+              eh->operand[i].value.val32 = (uint32_t) *DECAF_CPU_FPUC;
             }
           }
           else if (eh->operand[i].type == TXMMRegister) {
@@ -105,6 +107,7 @@ void update_written_operands (EntryHeader *eh) {
             eh->operand[i].value.xmm_val._q[0] = XMMVAL(regnum,0);
             eh->operand[i].value.xmm_val._q[1] = XMMVAL(regnum,1);
           }
+#endif
           break;
         }
         case XED_OPERAND_ACTION_RW:
@@ -127,14 +130,15 @@ void update_written_operands (EntryHeader *eh) {
           // Update value for new operand
          // Update value for new operand
           if (eh->operand[i].type == TRegister) {
-            int regnum = REGNUM(eh->operand[i].addr.reg_addr);
-            eh->operand[first_empty_idx].value.val32 = DECAF_cpu_regs[regnum];
+            int regnum = REGNUM(REGOP_ADDR(eh->operand[i]));
+            REGOP_VAL(eh->operand[first_empty_idx]) = DECAF_CPU_REGS[regnum];
           }
           else if (eh->operand[i].type == TMemLoc) {
-            DECAF_read_mem(NULL, eh->operand[i].addr.mem32_addr,
+            DECAF_read_mem(NULL, MEMOP_ADDR(eh->operand[i]),
               (int)(eh->operand[i].length),
-              (uint8_t *)&(eh->operand[first_empty_idx].value.val32));
+              (uint8_t *)&(MEMOP_VAL(eh->operand[first_empty_idx])));
           }
+#ifndef TRACE_VERSION_50
           else if (eh->operand[i].type == TMMXRegister) {
             int regnum = eh->operand[i].addr.reg_addr;
             eh->operand[first_empty_idx].value.val64 = MMXVAL(regnum);
@@ -146,13 +150,14 @@ void update_written_operands (EntryHeader *eh) {
           else if (eh->operand[i].type == TFloatControlRegister) {
             if (eh->operand[i].addr.reg_addr == fpu_status_reg) {
               eh->operand[first_empty_idx].value.val32 =
-                (uint32_t) *DECAF_cpu_fpus;
+                (uint32_t) *DECAF_CPU_FPUS;
             }
             else if (eh->operand[i].addr.reg_addr == fpu_control_reg) {
               eh->operand[first_empty_idx].value.val32 =
-                (uint32_t) *DECAF_cpu_fpuc;
+                (uint32_t) *DECAF_CPU_FPUC;
             }
           }
+#endif
 
           first_empty_idx++;
         }

@@ -20,8 +20,8 @@
 
 #ifndef _TC_TRACKPROC_H_
 #define _TC_TRACKPROC_H_
-#include "shared/procmod.h"
 
+#include "shared/vmi_c_wrapper.h"
 #define MAX_CHILDPROC (10)
 
 #ifdef __cplusplus

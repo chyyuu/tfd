@@ -8,32 +8,39 @@ How to (quickly) collect a trace using TFD:
   1. Load TFD plugin
   (qemu) load_plugin TFD_PATH/tfd.so
 
-  2. Specify received network data as a taint source.
-  (qemu) taint_nic 1
-
-  3. Identify the PID of the process to trace. 
+  2. Identify the PID of the process to trace. 
      To list all running processes:
        a) in a Windows image: (qemu) guest_ps
        b) in a Linux image: (qemu) linux_ps
 
-  4. Start tracing the victim process.
+     If you are not able to list the running processes it means you have
+     a problem with DECAF's OS introspection module 
+     (i.e., VMI or the guest kernel module).
+     This is a DECAF (rather than TFD) issue, so check the 
+     DECAF forum for information.
+
+  3. Start tracing the victim process.
   (qemu) trace <pid_of_victim_process> <trace_filename>
 
-  5. After the experiment, stop tracing and collect the trace.
+  4. After the experiment, stop tracing and collect the trace.
   (qemu) trace_stop
+  (In addition to the trace file I recommend keeping the guest.log file that 
+   DECAF places in the startup directory)
 
 
 Tracing a process from the start
 ================================
 If you want to trace a process from the start, then the PID is unknown. 
-To trace, then replace steps 3. and 4. above with:
+To trace, then replace steps 2. and 3. above with:
 
-  3. (qemu) tc_modname <process_name>
-     This prevents writing to the trace until the first instruction in 
-     the given module/process name starts, i.e., 
-     the trace does not contain the process initialization
+  2. (qemu) tc_modname <process_name>
+     This is an optional command to prevent writing to the trace until 
+     the first instruction in the main module of the process executes, 
+     i.e., the trace does not contain the process creation. 
+     You can skip this step if you want to include process creation in
+     the trace.
 
-  4. (qemu) tracebyname <process_name> <trace_filename>
+  3. (qemu) tracebyname <process_name> <trace_filename>
      This instructs TFD to start tracing when the given process starts
 
 For example: 

@@ -37,10 +37,11 @@
 #endif
 #include "tfd.h"
 #include "shared/reg_ids.h"
-#include "shared/procmod.h"
 #include "shared/function_map.h"
 #include "shared/hookapi.h"
+#include "shared/vmi_c_wrapper.h"
 
+#if 0
 #ifdef TAINT_ENABLED
 /* Taint a memory region. Caller is in charge of freeing param */
 int taint_mem(uint32_t vaddr, uint32_t size, void *param)
@@ -146,11 +147,11 @@ void clean_mem_taint(uint32_t vaddr, int size)
 }
 
 #endif // #ifdef TAINT_ENABLED
-
+#endif
 
 void get_procname(char *buf, uint32_t *pid)
 {
-  find_process(DECAF_cpu_cr[3], buf,MAX_STRING_LEN, pid);
+  VMI_find_process_by_cr3_c(DECAF_CPU_CR[3], buf, MAX_STRING_LEN, pid);
 }
 
 

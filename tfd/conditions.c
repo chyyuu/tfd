@@ -25,7 +25,6 @@
 #include <sys/time.h>
 #include "conditions.h"
 #include "DECAF_main.h"
-#include "DECAF_target.h"
 #include "hookapi.h"
 #include "conf.h"
 
@@ -51,7 +50,7 @@ void tc_modname(Monitor *mon, const QDict *qdict)
 
 void tc_address_hook(void *opaque)
 {
-  if (decaf_plugin->monitored_cr3 == DECAF_cpu_cr[3]) {
+  if (decaf_plugin->monitored_cr3 == DECAF_CPU_CR[3]) {
     tracing_start_condition = 1;
     /* remove the hook */
     hookapi_remove_hook(cond_func_hook_handle);
@@ -82,7 +81,7 @@ void tc_address_start_hook(void *opaque)
 {
   monitor_printf(default_mon, "tc_address_start_hook(*) called\n");
   if ((tracing_kernel_all() ||
-    (decaf_plugin->monitored_cr3 == DECAF_cpu_cr[3])) &&
+    (decaf_plugin->monitored_cr3 == DECAF_CPU_CR[3])) &&
     (tc_start_counter++ == tc_start_at))
   {
     tracing_start_condition = 1;
@@ -120,7 +119,7 @@ void tc_address_stop_hook(void *opaque)
 {
   monitor_printf(default_mon, "tc_address_stop_hook(*) called\n");
   if ((tracing_kernel_all() ||
-    (decaf_plugin->monitored_cr3 == DECAF_cpu_cr[3])) &&
+    (decaf_plugin->monitored_cr3 == DECAF_CPU_CR[3])) &&
     (tc_stop_counter++ == tc_stop_at))
   {
     tracing_start_condition = 0;

@@ -18,7 +18,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/* NOTE: We need to use get_current_tid() in the functions that use
+/* NOTE: We need to use VMI_get_current_tid_c() in the functions that use
      the current thread id, because the current_tid variable is only
      updated at insn_begin, while the hook executes before insn_begin
      is executed. 
@@ -26,7 +26,6 @@
      we would set the skiptaint flag incorrectly */
 
 
-#include "shared/procmod.h"
 #include "skiptaint.h"
 
 int thread_skiptaint[MAX_NUMBER_OF_THREADS][2];
@@ -41,7 +40,7 @@ void init_st() {
 
 void reset_st(uint32_t tid) {
   int i;
-  uint32_t id = (tid > 0) ? tid : get_current_tid(NULL);
+  uint32_t id = (tid > 0) ? tid : VMI_get_current_tid_c(NULL);
 
   for (i = 0; i < MAX_NUMBER_OF_THREADS; i++) {
     if (thread_skiptaint[i][0] == id) {
@@ -53,7 +52,7 @@ void reset_st(uint32_t tid) {
 
 void reset_cst() {
   int i;
-  uint32_t id = get_current_tid(NULL);
+  uint32_t id = VMI_get_current_tid_c(NULL);
 
   for (i = 0; i < MAX_NUMBER_OF_THREADS; i++) {
     if (thread_skiptaint[i][0] == id) {
@@ -65,7 +64,7 @@ void reset_cst() {
 
 int get_st(uint32_t tid) {
   int i;
-  uint32_t id = (tid > 0) ? tid : get_current_tid(NULL);
+  uint32_t id = (tid > 0) ? tid : VMI_get_current_tid_c(NULL);
 
   for (i = 0; i < MAX_NUMBER_OF_THREADS; i++) {
     if (thread_skiptaint[i][0] == id) {
@@ -77,7 +76,7 @@ int get_st(uint32_t tid) {
 
 int get_cst() {
   int i;
-  uint32_t id = get_current_tid(NULL);
+  uint32_t id = VMI_get_current_tid_c(NULL);
 
   for (i = 0; i < MAX_NUMBER_OF_THREADS; i++) {
     if (thread_skiptaint[i][0] == id) {
@@ -89,7 +88,7 @@ int get_cst() {
 
 int inc_st(uint32_t tid) {
   int i = 0;
-  uint32_t id = (tid > 0) ? tid : get_current_tid(NULL);
+  uint32_t id = (tid > 0) ? tid : VMI_get_current_tid_c(NULL);
 
   for (i = 0; i < MAX_NUMBER_OF_THREADS; i++) {
     if (thread_skiptaint[i][0] == id) {
@@ -107,7 +106,7 @@ int inc_st(uint32_t tid) {
 
 int inc_cst() {
   int i = 0;
-  uint32_t id = get_current_tid(NULL);
+  uint32_t id = VMI_get_current_tid_c(NULL);
 
   for (i = 0; i < MAX_NUMBER_OF_THREADS; i++) {
     if (thread_skiptaint[i][0] == id) {
@@ -126,7 +125,7 @@ int inc_cst() {
 
 int dec_st(uint32_t tid) {
   int i;
-  uint32_t id = (tid > 0) ? tid : get_current_tid(NULL);
+  uint32_t id = (tid > 0) ? tid : VMI_get_current_tid_c(NULL);
 
   for (i = 0; i < MAX_NUMBER_OF_THREADS; i++) {
     if (thread_skiptaint[i][0] == id) {
@@ -147,7 +146,7 @@ int dec_st(uint32_t tid) {
 
 int dec_cst() {
   int i;
-  uint32_t id = get_current_tid(NULL);
+  uint32_t id = VMI_get_current_tid_c(NULL);
 
   for (i = 0; i < MAX_NUMBER_OF_THREADS; i++) {
     if (thread_skiptaint[i][0] == id) {

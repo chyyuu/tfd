@@ -22,7 +22,7 @@
 #define _ERRDET_H_
 
 #include "shared/DECAF_main.h"
-#include "shared/procmod.h"
+#include "vmi_callback.h"
 
 /* Error detection
  * TFD has some support for detecting errors in programs
@@ -73,7 +73,7 @@ extern void set_detect_action(Monitor *mon, const QDict *qdict);
 extern void set_detect_action_internal(const char* condition_str, 
                                         const char* action_str);
 extern void tainteip_detection(uint8_t *record);
-extern void procexit_detection(procmod_Callback_Params* params);
+extern void procexit_detection(VMI_Callback_Params* params);
 
 #ifdef __cplusplus
 }

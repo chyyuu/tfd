@@ -26,10 +26,6 @@ save_state_at_trace_stop =
 
 [tracing]
 
-; Set to 'no' if you want to disable taint propagation on memory lookups
-;   with a tainted index
-tracing_table_lookup = yes
-
 ; Set to 'yes' if you want to write only tainted instructions into the 
 ;   trace file
 tracing_tainted_only = no

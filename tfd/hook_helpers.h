@@ -24,8 +24,8 @@
 
 #include <inttypes.h>
 #include <stdio.h>
-#include "DECAF_target.h"
 #include "DECAF_main.h"
+#include "DECAF_target.h"
 #include "hookapi.h"
 
 
@@ -66,12 +66,14 @@ static inline void write_reg(int reg_id, uint32_t val)
 extern int get_function_name (uint32_t eip, char *mod_name_ptr, char *fun_name_ptr);
 extern void get_procname(char *buf, uint32_t *pid);
 extern int write_log(const char *const name, const char *const fmt, ...);
+#if 0
 #ifdef TAINT_ENABLED
-extern int taint_mem(uint32_t vaddr, uint32_t size, void *param);
+//extern int taint_mem(uint32_t vaddr, uint32_t size, void *param);
 extern int taint_reg(int reg_id, void *param);
 extern uint64_t get_mem_taint(uint32_t vaddr, uint32_t size, uint8_t *records);
 extern void clean_mem_taint(uint32_t vaddr, int size);
 #endif // #ifdef TAINT_ENABLED
+#endif
 
 #ifdef __cplusplus
 };
