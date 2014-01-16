@@ -10,12 +10,19 @@ add_subdirectory(libtracereader)
 # add included header files from these directories
 include_directories(${BINTYPE_SOURCE_DIR}/)
 include_directories(${BINTYPE_SOURCE_DIR}/libtracereader)
+if(CMAKE_SIZEOF_VOID_P EQUAL 8 )
+include_directories(${BINTYPE_SOURCE_DIR}/xed2/xed2-intel64/include)
+else()
 include_directories(${BINTYPE_SOURCE_DIR}/xed2/xed2-ia32/include)
+endif()
 
 # add linked library from these directories
 link_directories(${BINTYPE_SOURCE_DIR}/libtracereader)
+if(CMAKE_SIZEOF_VOID_P EQUAL 8 )
+link_directories(${BINTYPE_SOURCE_DIR}/xed2/xed2-intel64/lib)
+else()
 link_directories(${BINTYPE_SOURCE_DIR}/xed2/xed2-ia32/lib)
-
+endif()
 # compile options
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_GNU_SOURCE)
 add_definitions(-Wall -O3 -g3 -Wno-unused-result -Wformat=0)
