@@ -599,8 +599,6 @@ static int read_instruction_v50(trace_interface_t * trace, x86_inst_t * insn,
   if (fread(&(eh->rawbytes), eh->inst_size, 1, stream) < 1)
     return -1;
 
-  assert(eh->num_operands <= MAX_NUM_OPERANDS);
-
   // Read operands
   for (i = 0; i < eh->num_operands; i++) {
     // Read the operand tentatively into the operand array
@@ -841,8 +839,6 @@ static int read_instruction_v60(trace_interface_t * trace, x86_inst_t * insn,
   // Read rawbytes
   if (fread(&(eh->rawbytes), eh->inst_size, 1, stream) < 1)
     return -1;
-
-  assert(eh->num_operands <= MAX_NUM_OPERANDS);
 
   // Build operand and memregs arrays
   for (i = 0; i < eh->num_operands; i++) {

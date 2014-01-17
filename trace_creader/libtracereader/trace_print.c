@@ -29,7 +29,7 @@
 #include <xed-interface.h>
 #include <trace_print.h>
 
-#define MAX_STR_SIZE 2048
+#define MAX_STR_SIZE 3072
 
 const char optype[11] = 
   {'N', 'R', 'M', 'I', 'J', 'R', 'A', 'R', 'R', 'R', 'D'};
