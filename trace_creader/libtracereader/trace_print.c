@@ -380,15 +380,24 @@ int print_trace_header(FILE * stream, trace_interface_t * trace,
   size_t curr_size;
   int i, j;
   char mod_str[256];
+  unsigned long long minus_one = (unsigned long long)(-1);
 
   if (!stream || !trace)
     return;
 
-  curr_size = fprintf(stream, 
-                  "Trace version: %d\n"
-                  "Number of instructions: %lld\n",
-                  trace->trace_version,
-                  trace->trace_num_insn);
+  if (trace->trace_num_insn != minus_one) {
+    curr_size = fprintf(stream, 
+                    "Trace version: %d\n"
+                    "Number of instructions: %lld\n",
+                    trace->trace_version,
+                    trace->trace_num_insn);
+  }
+  else {
+    curr_size = fprintf(stream, 
+                    "Trace version: %d\n"
+                    "Number of instructions: <create_trace_index>\n",
+                    trace->trace_version);
+  }
 
   if (!trace->trace_procs || !trace->trace_mods)
     return curr_size;

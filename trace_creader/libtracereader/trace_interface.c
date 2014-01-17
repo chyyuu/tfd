@@ -159,26 +159,33 @@ static int read_processes(FILE * stream, size_t num_procs,
 
     num_proc_mods = procs[i].n_mods;
     if (num_proc_mods <= 0) {
-      fprintf(stderr,
-        "libtracereader: could not find any modules for process %d.\n",
-        procs[i].pid);
-      goto fail;
+      /* NOTE: It could happen that there are no modules */
+      if (num_proc_mods == 0) {
+        mods[i] = NULL;
+      }
+      else {
+        fprintf(stderr,
+          "libtracereader: invalid number of modules for process %d.\n",
+          procs[i].pid);
+        goto fail;
+      }
     }
+    else {
+      mods[i] = (module_t *) malloc (sizeof(module_t)*num_proc_mods);
+      if (!mods[i]) {
+        fprintf(stderr, "libtracereader: failed to allocate module array.\n");
+        goto fail;
+      }
 
-    mods[i] = (module_t *) malloc (sizeof(module_t)*num_proc_mods);
-    if (!mods[i]) {
-      fprintf(stderr, "libtracereader: failed to allocate module array.\n");
-      goto fail;
-    }
-
-    /* Read module information from trace file */
-    if (fread(mods[i], sizeof(module_t), num_proc_mods, stream)
-         != num_proc_mods)
-    {
-      fprintf(stderr,
-        "libtracereader: failed to read all modules for process %d.\n",
-        procs[i].pid);
-      goto fail;
+      /* Read module information from trace file */
+      if (fread(mods[i], sizeof(module_t), num_proc_mods, stream)
+           != num_proc_mods)
+      {
+        fprintf(stderr,
+          "libtracereader: failed to read all modules for process %d.\n",
+          procs[i].pid);
+        goto fail;
+      }
     }
   }
   return 0;
